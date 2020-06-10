@@ -17,9 +17,10 @@ export default {
       mesh: null,
       state: null,
       app: null,
-      light:null,
-      param:null,
-      loader:null,//图片加载器
+      light: null,
+      param: null,
+      loader: null, //图片加载器
+      texture: null, //存图片
       widths: document.body.clientWidth,
       heights: document.body.clientHeight
     };
@@ -50,6 +51,7 @@ export default {
       //   z:0
       // })
     },
+
     //渲染器
     _renderer() {
       this.renderer = new THREE.WebGLRenderer({
@@ -61,38 +63,57 @@ export default {
     },
     //几何体
     _mesh() {
-      // var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);  
-      var geometry = new THREE.PlaneGeometry( 500, 300, 1, 1 );    
+      // var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+      var geometry = new THREE.PlaneGeometry(500, 300, 1, 1);
       this.loader = new THREE.TextureLoader();
       // this.mesh.position = new THREE.Vector3(0,0,0);
-      var texture =this.loader.load('../../static/images/plant.png',function(texture){})
-        var material = new THREE.MeshBasicMaterial({ map: texture });
-         this.mesh = new THREE.Mesh(geometry, material);
-         this.scene.add(this.mesh);
-      
+      this.texture = this.loader.load("../../static/images/plant.png", function(
+        texture
+      ) {});
+      var material = new THREE.MeshBasicMaterial({ map: this.texture });
+      this.mesh = new THREE.Mesh(geometry, material);
+      this.scene.add(this.mesh);
     },
     //状态
-    _state() {      
+    _state() {
       this.state = new Stats();
       this.state.domElement.style.position = "absolute";
       this.state.domElement.style.left = "0px";
       this.state.domElement.style.top = "0px";
       app.appendChild(this.state.domElement);
     },
-    //光
-    _light() {
+    //调试器
+    _gui() {
       var ParamObj = function() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        this.repeat = 1;
+        this.wrap = 1;
       };
       this.param = new ParamObj();
       var gui = new DAT.GUI();
-      gui.add(this.param, "x", -10000, 10000).name("环境光X的位置");
-      gui.add(this.param, "y", -10000, 10000).name("环境光Y的位置");
-      gui.add(this.param, "z", -10000, 10000).name("环境光Z的位置");
+      gui.add(this.param, "repeat", 1, 5).name("纹理重复");
+      gui
+        .add(this.param, "wrap", 1, 3)
+        .name("纹理环绕")
+        .step(1);
+    },
+    //图片更改之时刷新
+    _guichang() {
+      if (this.texture != null) {
+        this.texture.repeat.x = this.texture.repeat.y = this.param.repeat;
+        if (this.param.wrap == 1) {
+          this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
+        } else if (this.param.wrap == 2) {
+          this.texture.wrapS = this.texture.wrapT = THREE.ClampToEdgeWrapping;
+        } else if (this.param.wrap == 3) {
+          this.texture.wrapS = this.texture.wrapT = THREE.MirroredRepeatWrapping;
+        }
+        this.texture.needsUpdate = true;
+      }
+    },
+    //光
+    _light() {
       this.light = new THREE.AmbientLight(0x00ff00);
-      this.light.position.set(this.param.x, this.param.y, this.param.z);
+      //  this.light.position.set(this.param.x, this.param.y, this.param.z);
       this.scene.add(this.light);
     },
     init() {
@@ -101,6 +122,7 @@ export default {
       this._renderer();
       this._mesh();
       this._state();
+      this._gui();
       this._light();
       this.animate();
       //this.tween();
@@ -117,7 +139,7 @@ export default {
       //this.mesh.rotation.y += 0.01;
       //console.log(this.mesh.position.x)
       this.renderer.render(this.scene, this.camera);
-      this.light.position.set(this.param.x, this.param.y, this.param.z);
+      this._guichang();
       TWEEN.update();
       this.state.end();
     }
