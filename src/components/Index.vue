@@ -33,9 +33,9 @@ export default {
     //相机
     _camera() {
       this.camera = new THREE.PerspectiveCamera(
-        45,
+        70,
         this.widths / this.heights,
-        0.1,
+        1,
         1000
       );
       // this.camera.position.x = 0;
@@ -43,7 +43,7 @@ export default {
       // this.camera.position.z = 600;
       // this.camera.up.x = 0;
       // this.camera.up.y = 1;
-      this.camera.position.z = 1;
+      this.camera.position.z = 400;
       // this.camera.lookAt({
       //   x:0,
       //   y:0,
@@ -61,21 +61,14 @@ export default {
     },
     //几何体
     _mesh() {
-      var geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-      
+      // var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);  
+      var geometry = new THREE.PlaneGeometry( 500, 300, 1, 1 );    
       this.loader = new THREE.TextureLoader();
-      var _this = this;
       // this.mesh.position = new THREE.Vector3(0,0,0);
-      this.loader.load(
-        '../../static/images/plant.png',
-        function(texture){
-            var material = new THREE.MeshBasicMaterial({ map: texture });
-            _this.mesh = new THREE.Mesh(geometry, material);
-            _this.scene.add(_this.mesh);
-        },
-        function(error){
-            console.log(error)
-        })
+      var texture =this.loader.load('../../static/images/plant.png',function(texture){})
+        var material = new THREE.MeshBasicMaterial({ map: texture });
+         this.mesh = new THREE.Mesh(geometry, material);
+         this.scene.add(this.mesh);
       
     },
     //状态
