@@ -19,6 +19,7 @@ export default {
       app: null,
       light:null,
       param:null,
+      loader:null,//图片加载器
       widths: document.body.clientWidth,
       heights: document.body.clientHeight
     };
@@ -61,13 +62,24 @@ export default {
     //几何体
     _mesh() {
       var geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-      var material = new THREE.MeshBasicMaterial({ color: "#ff0000" });
-      this.mesh = new THREE.Mesh(geometry, material);
+      
+      this.loader = new THREE.TextureLoader();
+      var _this = this;
       // this.mesh.position = new THREE.Vector3(0,0,0);
+      this.loader.load(
+        '../../static/images/plant.png',
+        function(texture){
+            var material = new THREE.MeshBasicMaterial({ map: texture });
+            _this.mesh = new THREE.Mesh(geometry, material);
+            _this.scene.add(_this.mesh);
+        },
+        function(error){
+            console.log(error)
+        })
+      
     },
     //状态
-    _state() {
-      this.scene.add(this.mesh);
+    _state() {      
       this.state = new Stats();
       this.state.domElement.style.position = "absolute";
       this.state.domElement.style.left = "0px";
