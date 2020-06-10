@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import Stats from "../../static/lib/stats";
 import TWEEN from "@tweenjs/tween.js";
+import DAT from "../../static/lib/dat.gui";
 export default {
   name: "Index",
   data() {
@@ -16,6 +17,8 @@ export default {
       mesh: null,
       state: null,
       app: null,
+      light:null,
+      param:null,
       widths: document.body.clientWidth,
       heights: document.body.clientHeight
     };
@@ -71,14 +74,31 @@ export default {
       this.state.domElement.style.top = "0px";
       app.appendChild(this.state.domElement);
     },
+    //光
+    _light() {
+      var ParamObj = function() {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+      };
+      this.param = new ParamObj();
+      var gui = new DAT.GUI();
+      gui.add(this.param, "x", -10000, 10000).name("环境光X的位置");
+      gui.add(this.param, "y", -10000, 10000).name("环境光Y的位置");
+      gui.add(this.param, "z", -10000, 10000).name("环境光Z的位置");
+      this.light = new THREE.AmbientLight(0x00ff00);
+      this.light.position.set(this.param.x, this.param.y, this.param.z);
+      this.scene.add(this.light);
+    },
     init() {
       this._scene();
       this._camera();
       this._renderer();
       this._mesh();
       this._state();
+      this._light();
       this.animate();
-      this.tween();
+      //this.tween();
     },
     tween() {
       new TWEEN.Tween(this.camera.position)
@@ -92,6 +112,7 @@ export default {
       //this.mesh.rotation.y += 0.01;
       //console.log(this.mesh.position.x)
       this.renderer.render(this.scene, this.camera);
+      this.light.position.set(this.param.x, this.param.y, this.param.z);
       TWEEN.update();
       this.state.end();
     }
