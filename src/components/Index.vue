@@ -67,7 +67,7 @@ export default {
       var geometry = new THREE.PlaneGeometry(500, 300, 1, 1);
       this.loader = new THREE.TextureLoader();
       // this.mesh.position = new THREE.Vector3(0,0,0);
-      this.texture = this.loader.load("../../static/images/plant.png", function(
+      this.texture = this.loader.load("../../static/images/c.jpg", function(
         texture
       ) {});
       var material = new THREE.MeshBasicMaterial({ map: this.texture });
@@ -87,6 +87,8 @@ export default {
       var ParamObj = function() {
         this.repeat = 1;
         this.wrap = 1;
+        this.offsetX = 0;
+        this.offsetY = 0;
       };
       this.param = new ParamObj();
       var gui = new DAT.GUI();
@@ -95,17 +97,23 @@ export default {
         .add(this.param, "wrap", 1, 3)
         .name("纹理环绕")
         .step(1);
+        gui.add(this.param, "offsetX", -1.0, 1.0).name("纹理X偏移").step(1);
+        gui.add(this.param, "offsetY", -1.0, 1.0).name("纹理Y偏移").step(1);
     },
     //图片更改之时刷新
     _guichang() {
       if (this.texture != null) {
         this.texture.repeat.x = this.texture.repeat.y = this.param.repeat;
+        // this.texture.offset.x = this.param.offsetX;
+        // this.texture.offset.y = this.param.offsetY;
+        this.texture.offset.x += 0.01;
         if (this.param.wrap == 1) {
           this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
         } else if (this.param.wrap == 2) {
           this.texture.wrapS = this.texture.wrapT = THREE.ClampToEdgeWrapping;
         } else if (this.param.wrap == 3) {
-          this.texture.wrapS = this.texture.wrapT = THREE.MirroredRepeatWrapping;
+          this.texture.wrapS = this.texture.wrapT =
+            THREE.MirroredRepeatWrapping;
         }
         this.texture.needsUpdate = true;
       }
