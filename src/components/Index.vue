@@ -7,7 +7,10 @@ import * as THREE from "three";
 import Stats from "../../static/lib/stats";
 import TWEEN from "@tweenjs/tween.js";
 import DAT from "../../static/lib/dat.gui";
-import {OBJLoader} from 'three-obj-mtl-loader'
+import { OBJLoader } from "three-obj-mtl-loader";
+import Sea from "../utils/Sea"
+import Sky from "../utils/Sky"
+import AirPlane from "../utils/AirPlane"
 export default {
   name: "Index",
   data() {
@@ -23,7 +26,10 @@ export default {
       loader: null, //图片加载器
       texture: null, //存图片
       widths: document.body.clientWidth,
-      heights: document.body.clientHeight
+      heights: document.body.clientHeight,
+      sea:null,
+      sky:null,
+      airplane:null
     };
   },
   methods: {
@@ -31,21 +37,21 @@ export default {
     _scene() {
       this.app = document.querySelector("#container");
       this.scene = new THREE.Scene();
+      this.scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
     },
     //相机
     _camera() {
       this.camera = new THREE.PerspectiveCamera(
-        100,
+        60,
         this.widths / this.heights,
         1,
-        2000
+        10000
       );
-      // this.camera.position.x = 0;
-      // this.camera.position.y = 0;
-      // this.camera.position.z = 600;
+      this.camera.position.x = 0;
+      this.camera.position.y = 200;
+      this.camera.position.z = 100;
       // this.camera.up.x = 0;
       // this.camera.up.y = 1;
-      this.camera.position.z = 100;
       // this.camera.lookAt({
       //   x:0,
       //   y:0,
@@ -59,33 +65,43 @@ export default {
         antialias: false
       });
       this.renderer.setSize(this.widths, this.heights);
-      this.renderer.setClearColor("#87ceeb");
+
+      this.renderer.shadowMap.enabled = true;
+      // this.renderer.setClearColor("#87ceeb");
       this.app.appendChild(this.renderer.domElement);
     },
-    //几何体
-    _mesh() {        
-      this.loader = new OBJLoader();  
-      this.texture = new THREE.Texture();
-      var manager = new THREE.LoadingManager();
-      var imgloader = new THREE.ImageLoader( manager );      
-      imgloader.load( '../../static/images/UV_Grid_Sm.jpg', this.imgfn );    
-      this.loader.load("../../static/images/male02.obj", this.objfn);
+    //模型
+    _mesh() {
+      this.sea = new Sea();
+      this.sea.mesh.position.y = -600;      
+      this.scene.add(this.sea.mesh);
+
+      this.sky = new Sky();
+      this.sky.mesh.position.y = -600;
+      this.scene.add(this.sky.mesh);
+
+      this.airplane = new AirPlane();
+      this.airplane.mesh.scale.set(.25,.25,.25);
+      this.airplane.mesh.position.y = 200;
+      console.log(this.airplane.mesh.position)
+      this.scene.add(this.airplane.mesh);
+
     },
-    imgfn(image){
-      console.log(image)
+    imgfn(image) {
+      console.log(image);
       this.texture.image = image;
       this.texture.needsUpdate = true;
     },
     //obj格式成功回调方法
-    objfn(object){
+    objfn(object) {
       var _this = this;
-      object.traverse( function ( child ) {
-						if ( child instanceof THREE.Mesh ) {
-							child.material.map = _this.texture;
-						}
-          } );
-          object.position.y = - 80;
-        this.scene.add(object);
+      object.traverse(function(child) {
+        if (child instanceof THREE.Mesh) {
+          child.material.map = _this.texture;
+        }
+      });
+      object.position.y = -80;
+      this.scene.add(object);
     },
     //状态
     _state() {
@@ -110,8 +126,14 @@ export default {
         .add(this.param, "wrap", 1, 3)
         .name("纹理环绕")
         .step(1);
-        gui.add(this.param, "offsetX", -1.0, 1.0).name("纹理X偏移").step(1);
-        gui.add(this.param, "offsetY", -1.0, 1.0).name("纹理Y偏移").step(1);
+      gui
+        .add(this.param, "offsetX", -1.0, 1.0)
+        .name("纹理X偏移")
+        .step(1);
+      gui
+        .add(this.param, "offsetY", -1.0, 1.0)
+        .name("纹理Y偏移")
+        .step(1);
     },
     //图片更改之时刷新
     _guichang() {
@@ -133,8 +155,19 @@ export default {
     },
     //光
     _light() {
+      var hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
       this.light = new THREE.DirectionalLight(0xffeedd);
-      this.light.position.set( 0, 0, 1);
+      this.light.position.set(150, 350, 350);
+      this.light.shadow.camera.left = -400;
+      this.light.shadow.camera.right = 400;
+      this.light.shadow.camera.top = 400;
+      this.light.shadow.camera.bottom = -400;
+      this.light.shadow.camera.near = 1;
+      this.light.shadow.camera.far = 1000;
+      this.light.shadow.mapSize.width = 2048;
+      this.light.shadow.mapSize.height = 2048;
+      this.light.castShadow = true;
+      this.scene.add(hemisphereLight);
       this.scene.add(this.light);
     },
     init() {
@@ -147,6 +180,15 @@ export default {
       this._light();
       this.animate();
       //this.tween();
+
+      window.addEventListener("resize", this._handleWindowResize, false);
+    },
+    _handleWindowResize() {
+      var HEIGHT = window.innerHeight;
+      var WIDTH = window.innerWidth;
+      this.renderer.setSize(WIDTH, HEIGHT);
+      this.camera.aspect = WIDTH / HEIGHT;
+      this.camera.updateProjectionMatrix();
     },
     tween() {
       new TWEEN.Tween(this.camera.position)
@@ -157,10 +199,12 @@ export default {
     animate() {
       this.state.begin();
       requestAnimationFrame(this.animate);
-      //this.mesh.rotation.y += 0.01;
-      //console.log(this.mesh.position.x)
+      this.airplane.propeller.rotation.x += 0.3;
+      this.sea.mesh.rotation.z += .005;
+      this.sky.mesh.rotation.z += .01;
+      // this.mesh.rotation.y += 0.01;
       this.renderer.render(this.scene, this.camera);
-     // this._guichang();
+      // this._guichang();
       TWEEN.update();
       this.state.end();
     }
@@ -173,6 +217,10 @@ export default {
 
 <style  scoped>
 #container {
+  position: absolute;
+  width: 100%;
   height: 100%;
+  overflow: hidden;
+  background: linear-gradient(#e4e0ba, #f7d9aa);
 }
 </style>
