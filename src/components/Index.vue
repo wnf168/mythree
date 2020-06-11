@@ -7,6 +7,7 @@ import * as THREE from "three";
 import Stats from "../../static/lib/stats";
 import TWEEN from "@tweenjs/tween.js";
 import DAT from "../../static/lib/dat.gui";
+import {VTKLoader} from "../../static/lib/VTKLoader"
 export default {
   name: "Index",
   data() {
@@ -34,17 +35,17 @@ export default {
     //相机
     _camera() {
       this.camera = new THREE.PerspectiveCamera(
-        70,
+        60,
         this.widths / this.heights,
-        1,
-        1000
+        0.01,
+        1e10
       );
       // this.camera.position.x = 0;
       // this.camera.position.y = 0;
       // this.camera.position.z = 600;
       // this.camera.up.x = 0;
       // this.camera.up.y = 1;
-      this.camera.position.z = 400;
+      this.camera.position.z = 0.2;
       // this.camera.lookAt({
       //   x:0,
       //   y:0,
@@ -64,15 +65,24 @@ export default {
     //几何体
     _mesh() {
       // var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-      var geometry = new THREE.PlaneGeometry(500, 300, 1, 1);
-      this.loader = new THREE.TextureLoader();
+      // var geometry = new THREE.PlaneGeometry(500, 300, 1, 1);
+      // this.loader = new THREE.TextureLoader();
+      this.loader = new VTKLoader();
       // this.mesh.position = new THREE.Vector3(0,0,0);
-      this.texture = this.loader.load("../../static/images/c.jpg", function(
+      var _this = this;
+      this.texture = this.loader.load("../../static/images/bunny.vtk", function(
         texture
-      ) {});
-      var material = new THREE.MeshBasicMaterial({ map: this.texture });
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.scene.add(this.mesh);
+      ) {
+        var material = new THREE.MeshLambertMaterial( { color:0xffffff, side: THREE.DoubleSide } );
+        texture.computeVertexNormals();
+        _this.mesh = new THREE.Mesh(texture, material);
+        _this.mesh.position.setY(-0.09);
+        _this.scene.add(_this.mesh);
+      });
+      
+      // var material = new THREE.MeshLambertMaterial( { color:0xffffff, side: THREE.DoubleSide } );
+      // this.mesh = new THREE.Mesh(this.texture, material);
+      // this.scene.add(this.mesh);
     },
     //状态
     _state() {
@@ -106,7 +116,7 @@ export default {
         this.texture.repeat.x = this.texture.repeat.y = this.param.repeat;
         // this.texture.offset.x = this.param.offsetX;
         // this.texture.offset.y = this.param.offsetY;
-        this.texture.offset.x += 0.01;
+        this.texture.offset.x += 0.001;
         if (this.param.wrap == 1) {
           this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
         } else if (this.param.wrap == 2) {
@@ -120,9 +130,10 @@ export default {
     },
     //光
     _light() {
-      this.light = new THREE.AmbientLight(0x00ff00);
-      //  this.light.position.set(this.param.x, this.param.y, this.param.z);
-      this.scene.add(this.light);
+      this.light = new THREE.DirectionalLight(0xffffff);
+      this.light.position.set(200, 200, 1000).normalize();
+      this.camera.add(this.light);
+      this.camera.add(this.light.target);
     },
     init() {
       this._scene();
