@@ -7,7 +7,7 @@ import * as THREE from "three";
 import Stats from "../../static/lib/stats";
 import TWEEN from "@tweenjs/tween.js";
 import DAT from "../../static/lib/dat.gui";
-import {VTKLoader} from "../../static/lib/VTKLoader"
+import {OBJLoader} from 'three-obj-mtl-loader'
 export default {
   name: "Index",
   data() {
@@ -35,17 +35,17 @@ export default {
     //相机
     _camera() {
       this.camera = new THREE.PerspectiveCamera(
-        60,
+        100,
         this.widths / this.heights,
-        0.01,
-        1e10
+        1,
+        2000
       );
       // this.camera.position.x = 0;
       // this.camera.position.y = 0;
       // this.camera.position.z = 600;
       // this.camera.up.x = 0;
       // this.camera.up.y = 1;
-      this.camera.position.z = 0.2;
+      this.camera.position.z = 100;
       // this.camera.lookAt({
       //   x:0,
       //   y:0,
@@ -63,26 +63,29 @@ export default {
       this.app.appendChild(this.renderer.domElement);
     },
     //几何体
-    _mesh() {
-      // var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-      // var geometry = new THREE.PlaneGeometry(500, 300, 1, 1);
-      // this.loader = new THREE.TextureLoader();
-      this.loader = new VTKLoader();
-      // this.mesh.position = new THREE.Vector3(0,0,0);
+    _mesh() {        
+      this.loader = new OBJLoader();  
+      this.texture = new THREE.Texture();
+      var manager = new THREE.LoadingManager();
+      var imgloader = new THREE.ImageLoader( manager );      
+      imgloader.load( '../../static/images/UV_Grid_Sm.jpg', this.imgfn );    
+      this.loader.load("../../static/images/male02.obj", this.objfn);
+    },
+    imgfn(image){
+      console.log(image)
+      this.texture.image = image;
+      this.texture.needsUpdate = true;
+    },
+    //obj格式成功回调方法
+    objfn(object){
       var _this = this;
-      this.texture = this.loader.load("../../static/images/bunny.vtk", function(
-        texture
-      ) {
-        var material = new THREE.MeshLambertMaterial( { color:0xffffff, side: THREE.DoubleSide } );
-        texture.computeVertexNormals();
-        _this.mesh = new THREE.Mesh(texture, material);
-        _this.mesh.position.setY(-0.09);
-        _this.scene.add(_this.mesh);
-      });
-      
-      // var material = new THREE.MeshLambertMaterial( { color:0xffffff, side: THREE.DoubleSide } );
-      // this.mesh = new THREE.Mesh(this.texture, material);
-      // this.scene.add(this.mesh);
+      object.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							child.material.map = _this.texture;
+						}
+          } );
+          object.position.y = - 80;
+        this.scene.add(object);
     },
     //状态
     _state() {
@@ -130,10 +133,9 @@ export default {
     },
     //光
     _light() {
-      this.light = new THREE.DirectionalLight(0xffffff);
-      this.light.position.set(200, 200, 1000).normalize();
-      this.camera.add(this.light);
-      this.camera.add(this.light.target);
+      this.light = new THREE.DirectionalLight(0xffeedd);
+      this.light.position.set( 0, 0, 1);
+      this.scene.add(this.light);
     },
     init() {
       this._scene();
@@ -141,7 +143,7 @@ export default {
       this._renderer();
       this._mesh();
       this._state();
-      this._gui();
+      //this._gui();
       this._light();
       this.animate();
       //this.tween();
@@ -158,7 +160,7 @@ export default {
       //this.mesh.rotation.y += 0.01;
       //console.log(this.mesh.position.x)
       this.renderer.render(this.scene, this.camera);
-      this._guichang();
+     // this._guichang();
       TWEEN.update();
       this.state.end();
     }
