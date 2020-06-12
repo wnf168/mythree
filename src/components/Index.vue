@@ -84,8 +84,9 @@ export default {
     ])
     var attribue = new THREE.BufferAttribute(vertices,3);
     geometry.attributes.position = attribue;
-  var material = new THREE.MeshBasicMaterial({color:0x0000ff,side:THREE.DoubleSide});
-      this.mesh = new THREE.Mesh(geometry,material);
+  var material = new THREE.PointsMaterial({color:0xff0000,size:10});
+      // this.mesh = new THREE.Mesh(geometry,material);
+      this.mesh = new THREE.Points(geometry,material);
       this.scene.add(this.mesh)
 
       var axisHelper = new THREE.AxisHelper(250);
