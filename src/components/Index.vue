@@ -8,9 +8,9 @@ import Stats from "../../static/lib/stats";
 import TWEEN from "@tweenjs/tween.js";
 import DAT from "../../static/lib/dat.gui";
 import { OBJLoader } from "three-obj-mtl-loader";
-import Sea from "../utils/Sea"
-import Sky from "../utils/Sky"
-import AirPlane from "../utils/AirPlane"
+import Sea from "../utils/Sea";
+import Sky from "../utils/Sky";
+import AirPlane from "../utils/AirPlane";
 export default {
   name: "Index",
   data() {
@@ -27,9 +27,13 @@ export default {
       texture: null, //存图片
       widths: document.body.clientWidth,
       heights: document.body.clientHeight,
-      sea:null,
-      sky:null,
-      airplane:null
+      sea: null,
+      sky: null,
+      airplane: null,
+      mousePos: {
+        x: 0,
+        y: 0
+      }
     };
   },
   methods: {
@@ -73,7 +77,7 @@ export default {
     //模型
     _mesh() {
       this.sea = new Sea();
-      this.sea.mesh.position.y = -600;      
+      this.sea.mesh.position.y = -600;
       this.scene.add(this.sea.mesh);
 
       this.sky = new Sky();
@@ -81,11 +85,9 @@ export default {
       this.scene.add(this.sky.mesh);
 
       this.airplane = new AirPlane();
-      this.airplane.mesh.scale.set(.25,.25,.25);
-      this.airplane.mesh.position.y = 200;
-      console.log(this.airplane.mesh.position)
+      this.airplane.mesh.scale.set(0.25, 0.25, 0.25);
+      this.airplane.mesh.position.y = 100;
       this.scene.add(this.airplane.mesh);
-
     },
     imgfn(image) {
       console.log(image);
@@ -182,6 +184,15 @@ export default {
       //this.tween();
 
       window.addEventListener("resize", this._handleWindowResize, false);
+      document.addEventListener("mousemove", this._handleMouseMove, false);
+    },
+    _handleMouseMove(event) {
+      var tx = -1 + (event.clientX / this.widths) * 2;
+      var ty = 1 - (event.clientY / this.heights) * 2;
+      this.mousePos = {
+        x: tx,
+        y: ty
+      };
     },
     _handleWindowResize() {
       var HEIGHT = window.innerHeight;
@@ -189,6 +200,21 @@ export default {
       this.renderer.setSize(WIDTH, HEIGHT);
       this.camera.aspect = WIDTH / HEIGHT;
       this.camera.updateProjectionMatrix();
+    },
+    updatePlane() {
+      var targetX = this.normalize(this.mousePos.x, -1, 1, -100, 100);
+      var targetY = this.normalize(this.mousePos.y, -1, 1, 25, 175);
+      this.airplane.mesh.position.y = targetY;
+      this.airplane.mesh.position.x = targetX;
+      this.airplane.propeller.rotation.x += 0.3;
+    },
+    normalize(v, vmin, vmax, tmin, tmax) {
+      var nv = Math.max(Math.min(v, vmax), vmin);
+      var dv = vmax - vmin;
+      var pc = (nv - vmin) / dv;
+      var dt = tmax - tmin;
+      var tv = tmin + pc * dt;
+      return tv;
     },
     tween() {
       new TWEEN.Tween(this.camera.position)
@@ -200,10 +226,11 @@ export default {
       this.state.begin();
       requestAnimationFrame(this.animate);
       this.airplane.propeller.rotation.x += 0.3;
-      this.sea.mesh.rotation.z += .005;
-      this.sky.mesh.rotation.z += .01;
+      this.sea.mesh.rotation.z += 0.005;
+      this.sky.mesh.rotation.z += 0.01;
       // this.mesh.rotation.y += 0.01;
       this.renderer.render(this.scene, this.camera);
+      this.updatePlane();
       // this._guichang();
       TWEEN.update();
       this.state.end();
