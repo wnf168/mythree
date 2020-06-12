@@ -67,10 +67,29 @@ export default {
     },
     //模型
     _mesh() {
-      var geometry = new THREE.BoxGeometry(100,100,100);
-      var material = new THREE.MeshBasicMaterial({color:0x0000ff});
+      // var geometry = new THREE.BoxGeometry(100,100,100);//长方体
+      // var geometry = new THREE.SphereGeometry(60,40,40);//球体
+      // var geometry = new THREE.CylinderGeometry( 50, 50, 100, 25 );//圆柱体
+      // var material = new THREE.MeshBasicMaterial({color:0x0000ff});//普通
+      // var material = new THREE.MeshLambertMaterial({color:0x0000ff,opacity:0.2,transparent:true});//透明
+      // var material = new THREE.MeshPhongMaterial({color:0x0000ff,specular:0x4488ee,shininess:12});//高光
+    var geometry = new THREE.BufferGeometry();
+    var vertices = new Float32Array([
+      0,0,0,
+      50,0,0,
+      0,100,0,
+      0,0,10,
+      0,0,100,
+      50,0,10
+    ])
+    var attribue = new THREE.BufferAttribute(vertices,3);
+    geometry.attributes.position = attribue;
+  var material = new THREE.MeshBasicMaterial({color:0x0000ff,side:THREE.DoubleSide});
       this.mesh = new THREE.Mesh(geometry,material);
       this.scene.add(this.mesh)
+
+      var axisHelper = new THREE.AxisHelper(250);
+      this.scene.add(axisHelper);
     },
     imgfn(image) {
       console.log(image);
@@ -184,7 +203,7 @@ export default {
     animate() {
       this.state.begin();
       requestAnimationFrame(this.animate);
-       this.mesh.rotation.x += 0.01;
+      //  this.mesh.rotation.x += 0.01;
       this.renderer.render(this.scene, this.camera);
       // this._guichang();
       TWEEN.update();
