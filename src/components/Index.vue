@@ -23,7 +23,7 @@ export default {
       loader: null, //图片加载器
       texture: null, //存图片
       widths: document.body.clientWidth,
-      heights: document.body.clientHeight,
+      heights: document.body.clientHeight
     };
   },
   methods: {
@@ -36,17 +36,10 @@ export default {
     //相机
     _camera() {
       var k = this.widths / this.heights;
-      var s = 200
-      this.camera = new THREE.OrthographicCamera(
-        -s*k,
-        s*k,
-        s,
-        -s,
-        1,
-        1000
-      );
-      this.camera.position.set(200,300,200);
-      this.camera.lookAt(this.scene.position)
+      var s = 200;
+      this.camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 1, 1000);
+      this.camera.position.set(200, 300, 200);
+      this.camera.lookAt(this.scene.position);
     },
 
     //渲染器
@@ -55,39 +48,81 @@ export default {
         antialias: false
       });
       this.renderer.setSize(this.widths, this.heights);
-      this.renderer.setClearColor(0xb9d3ff,1)
+      this.renderer.setClearColor(0xb9d3ff, 1);
       this.renderer.shadowMap.enabled = true;
       this.app.appendChild(this.renderer.domElement);
     },
     //控制器
-    _controls(){
-      var controls = new OrbitControls(this.camera,this.renderer.domElement);
+    _controls() {
+      var controls = new OrbitControls(this.camera, this.renderer.domElement);
       // console.log(controls)
-      controls.addEventListener("change",this.renderer);
+      controls.addEventListener("change", this.renderer);
     },
     //模型
     _mesh() {
       // var geometry = new THREE.BoxGeometry(100,100,100);//长方体
+      // console.log(geometry.faces)
+      //   geometry.faces.forEach(face => {
+      //   // 设置三角面face三个顶点的颜色
+      //   face.vertexColors = [
+      //     new THREE.Color(0xffff00),
+      //     new THREE.Color(0xff00ff),
+      //     new THREE.Color(0x00ffff),
+      //   ]
+      // });
+      // geometry.translate(0, 0, 0);
+      // geometry.center();
+      // geometry.faces.pop();
+      // geometry.faces.pop();
+      // geometry.faces.shift();
+      // geometry.faces.shift();
       // var geometry = new THREE.SphereGeometry(60,40,40);//球体
       // var geometry = new THREE.CylinderGeometry( 50, 50, 100, 25 );//圆柱体
-      // var material = new THREE.MeshBasicMaterial({color:0x0000ff});//普通
+      // var material = new THREE.MeshBasicMaterial({color: 0x0000ff});//普通
       // var material = new THREE.MeshLambertMaterial({color:0x0000ff,opacity:0.2,transparent:true});//透明
       // var material = new THREE.MeshPhongMaterial({color:0x0000ff,specular:0x4488ee,shininess:12});//高光
-    var geometry = new THREE.BufferGeometry();
-    var vertices = new Float32Array([
-      0,0,0,
-      50,0,0,
-      0,100,0,
-      0,0,10,
-      0,0,100,
-      50,0,10
-    ])
-    var attribue = new THREE.BufferAttribute(vertices,3);
-    geometry.attributes.position = attribue;
-  var material = new THREE.PointsMaterial({color:0xff0000,size:10});
-      // this.mesh = new THREE.Mesh(geometry,material);
-      this.mesh = new THREE.Points(geometry,material);
-      this.scene.add(this.mesh)
+      // var geometry = new THREE.BufferGeometry();
+      //   var vertices = new Float32Array([
+      //     0,0,0,
+      //     50,0,0,
+      //     0,100,0,
+      //     0,0,10,
+      //     0,0,100,
+      //     50,0,10
+      //   ])
+      //   var colors = new Float32Array([
+      //       1, 0, 0, //顶点1颜色
+      //       0, 1, 0, //顶点2颜色
+      //       0, 0, 1, //顶点3颜色
+
+      //       1, 1, 0, //顶点4颜色
+      //       0, 1, 1, //顶点5颜色
+      //       1, 0, 1, //顶点6颜色
+      //     ]);
+      //   var attribue = new THREE.BufferAttribute(vertices,3);
+      //   geometry.attributes.position = attribue;
+      //   geometry.attributes.color = new THREE.BufferAttribute(colors, 3);
+      // var material = new THREE.PointsMaterial({vertexColors: THREE.VertexColors,size: 10.0});
+// var p1 = new THREE.Vector3(1.2, 2.6, 3.2);
+      // var p2 = new THREE.Vector3(0.0, 0.0, 0.0);
+      // p2.copy(p1);
+      // // p2向量的xyz变为p1的xyz值
+      // console.log(p2);
+      // var mesh2 = this.mesh.clone();
+      // mesh2.geometry.color="0xff0000"
+      // console.log(mesh2.geometry)
+      //  this.mesh.translateX(250);
+      this.geometry = new THREE.SphereGeometry(100, 25, 25); //球体
+      var material = new THREE.MeshLambertMaterial({
+        color: 0x0000ff,
+        // wireframe: true
+      }); //普通
+      this.mesh = new THREE.Mesh(this.geometry, material);
+      var mesh2 = this.mesh.clone();
+      mesh2.geometry.color="0xff0000"
+      this.scene.add(this.mesh,mesh2);
+      console.log(this.scene.children)
+      
 
       var axisHelper = new THREE.AxisHelper(250);
       this.scene.add(axisHelper);
